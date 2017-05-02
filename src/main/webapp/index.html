@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en" style="min-height: 100%;">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>NSE : Indian Stock Market Knowledge | Options Trading</title>
+    
+<meta name="keywords" content="Indian Stock Maket, NSE , Currency Options, Option Chain, USDINR , Options Trading" />
+<meta name="description" content="Options Chain for NSE" />
+
+<meta name="robots" content="index, follow">
+    <!-- Bootstrap Core CSS -->
+    <link href="css/bootstrap.css" rel="stylesheet">
+  
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.11/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.1/nv.d3.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.1/nv.d3.min.css">
+	  
+<style>
+
+.banner {
+	background-color: rgba(0, 0, 0, 0.8); 
+	padding: 10px 0 10px;
+	position: inherit;
+	width: 100%;
+	border-bottom-color: #ecf0f1;
+	border-bottom-style: solid;
+	border-bottom-width: 0px;
+	z-index: 100;  
+}
+       
+.nav > li > a:hover, .nav > li > a:focus{
+border-radius: 3px;
+text-decoration: none;
+font-color: #fff!important;
+background-color: #4f6882 !important;
+}
+
+         table {
+         border-collapse: collapse;
+         text-align: center;
+         padding: 4px 3px;
+         border: solid 1px #ACA99F;
+         }
+         td, th {
+         border: 1px solid #f2f2f2;
+         padding: 1px;
+         font-size:small;
+         border: solid 1px #ACA99F
+         }
+         .optionHead {
+         background-color: #f2f2f2;
+         background: #E0E0E0;
+         border: solid 1px #ACA99F;
+         }
+         .grybg {
+         background: #e7e3d5;
+         }
+         .itm {
+         background: #ededf9;
+         text-align: right
+         }
+         .otm {
+         background: white;
+         text-align: right
+         }
+         .otmMaxOI {
+         background: #ccffcc;
+         text-align: right
+         }
+         .oi_total_class{
+        
+         text-align: right;
+        font-weight: bold
+         }
+      
+ 
+</style>
+
+</head>
+
+
+<body ng-app=""  >
+
+<div class="container-fluid main-content" style=" padding-right:0;  padding-left:0;" >
+
+   <div class="banner include-nav" style="background-color:#34495e;">
+	
+         <div ng-include="'templets/header.htm'"></div>
+    
+   </div>
+   
+   
+   
+   
+     <!--left-->
+  <div class=" col-xs-1 col-sm-2 col-md-2" >
+left
+
+  </div>
+  <!--/left-->
+  
+  
+  
+   <!--center-->
+  <div class="col-xs-10 col-sm-8  col-md-8">
+ 
+  
+   <div id="expiryDiv" class="col-xs-2"/> <strong>USDINR: <strong/></div>
+   <p>
+   <div id="mydiv" class="mydiv"></div>
+
+   <div id="chart" style="height: 200px;"><svg></svg></div>
+
+
+  <p id="demo"></p>
+      
+	  
+  </div>
+
+   
+   
+     <!--right-->
+  <div class="col-xs-1 col-sm-2 col-md-2">
+
+    
+	
+	right
+  </div><!--/right-->
+  
+  
+</div>
+
+
+<footer class="container-fluid text-center" style="background-color:#34495e;">
+   
+	 <div ng-include="'templets/footer.html'"></div>
+   
+</footer>   
+
+ 
+    <!-- Bootstrap Core JavaScript -->
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.js"></script>
+    
+    <script src="js/angular.min.js"></script>
+    
+</body>
+
+
+   <script>
+   
+   $('#loadingDiv').hide();
+
+		function onloadAjax(){
+		   $('#loadingDiv').show()
+		}
+		function onCompleteAjax(){
+		   $('#loadingDiv').hide()
+		}
+       function createSelect(array) {
+           var myDiv = document.getElementById("expiryDiv");
+
+
+           //Create and append select list
+           var selectList = document.createElement("select");
+           //var selectList = document.getElementById("expirySelect");
+           selectList.setAttribute("id", "mySelect");
+		   selectList.setAttribute("class", "form-control");
+           selectList.setAttribute("onchange", "loadDoc()");
+           myDiv.appendChild(selectList);
+
+           //Create and append the options
+           for (var i = 0; i < array.length; i++) {
+               var option = document.createElement("option");
+               option.setAttribute("value", array[i]);
+               option.text = array[i];
+               selectList.appendChild(option);
+           }
+       }
+       
+     $(document).ready(function () {
+         loadDocOnPageStart();
+         }
+        );
+     
+function loadDocOnPageStart() {
+    console.log("loadDocOnPageStart : ");
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+    
+        if (this.readyState == 4 && this.status == 200) {
+            var jsonResponse = JSON.parse(this.responseText);
+            
+            var data=jsonResponse.expiryList.toString().split(',');
+            
+            
+            console.log("onload data expiry: " + data)
+        
+            createSelect(data);
+            createTable(this.responseText);
+			
+        }
+    };
+    xhttp.open("GET", "rest/message/chain", true);
+    xhttp.send();
+}    
+   
+function loadDoc() {
+ var selectedExpiryvalue= document.getElementById("mySelect").value;
+ //console.log("selected value : " + selectedExpiryvalue);
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            //var jsonResponse = JSON.parse(this.responseText);
+            //console.log(jsonResponse)
+            createTable(this.responseText);
+
+        }
+    };
+    xhttp.open("POST", "rest/message/chain", true);
+    xhttp.send(selectedExpiryvalue);
+}
+function createTable(tableData) {
+    $('#optionchain').remove();
+    createOptionTable();
+	
+    var json1 = JSON.parse(tableData);
+	oiBarchart(json1);
+    var json = json1.dataset;
+    
+    
+      var rbiReferenceRate=json1.rbiReferenceRate;
+      var total_ce_oi=parseInt(json1.total_ce_oi)
+      var total_pe_oi=parseInt(json1.total_pe_oi)
+      var max_ce_oi=json1.max_ce_oi;
+      var max_pe_oi=json1.max_pe_oi;
+    
+    var tr;
+    for (var i = 0; i < json.length; i++) {
+        tr = $('<tr/>');
+
+        if (parseFloat(rbiReferenceRate) > parseFloat(json[i].strike_Price)) {
+
+
+            var str1 = json[i].ce_OI.replace(/,/, "");
+            if (parseInt(str1) == max_ce_oi) {
+                tr.append("<td class=otmMaxOI>" + json[i].ce_OI + "</td>");
+            } else {
+                tr.append("<td class=itm>" + json[i].ce_OI + "</td>");
+            }
+
+            var str1 = json[i].ce_OI.replace(/,/g, "");
+           // console.log("str1 :" + str1);
+            tr.append("<td class=itm>" + json[i].ce_Change_in_OI + "</td>");
+            tr.append("<td class=itm>" + json[i].ce_Volume + "</td>");
+            tr.append("<td class=itm>" + json[i].ce_IV + "</td>");
+            tr.append("<td class=itm>" + json[i].ce_LTP + "</td>");
+        } else {
+
+
+            var str1 = json[i].ce_OI.replace(/,/, "");
+            if (parseInt(str1) == max_ce_oi) {
+                tr.append("<td class=otmMaxOI>" + json[i].ce_OI + "</td>");
+            } else {
+                tr.append("<td class=otm>" + json[i].ce_OI + "</td>");
+            }
+
+            tr.append("<td class=otm>" + json[i].ce_Change_in_OI + "</td>");
+            tr.append("<td class=otm>" + json[i].ce_Volume + "</td>");
+            tr.append("<td class=otm>" + json[i].ce_IV + "</td>");
+            tr.append("<td class=otm>" + json[i].ce_LTP + "</td>");
+        }
+
+
+
+        tr.append("<td class=grybg>" + json[i].strike_Price + "</td>");
+
+        if (parseFloat(rbiReferenceRate) > parseFloat(json[i].strike_Price)) {
+            tr.append("<td class=otm>" + json[i].pe_LTP + "</td>");
+            tr.append("<td class=otm>" + json[i].pe_IV + "</td>");
+            tr.append("<td class=otm>" + json[i].pe_Volume + "</td>");
+            tr.append("<td class=otm>" + json[i].pe_Change_in_OI + "</td>");
+
+
+            var str1 = json[i].pe_OI.replace(/,/, "");
+            if (parseInt(str1) == max_pe_oi) {
+                tr.append("<td class=otmMaxOI>" + json[i].pe_OI + "</td>");
+            } else {
+                tr.append("<td class=otm>" + json[i].pe_OI + "</td>");
+            }
+
+
+        } else {
+            tr.append("<td class=itm>" + json[i].pe_LTP + "</td>");
+            tr.append("<td class=itm>" + json[i].pe_IV + "</td>");
+            tr.append("<td class=itm>" + json[i].pe_Volume + "</td>");
+            tr.append("<td class=itm>" + json[i].pe_Change_in_OI + "</td>");
+
+
+
+            var str1 = json[i].pe_OI.replace(/,/, "");
+            if (parseInt(str1) == max_pe_oi) {
+                tr.append("<td class=otmMaxOI>" + json[i].pe_OI + "</td>");
+            } else {
+                tr.append("<td class=itm>" + json[i].pe_OI + "</td>");
+            }
+        }
+
+        $('table').append(tr);
+
+    }
+          var ce_oi_total= document.getElementById("ce_oi_total").innerHTML="<b>"+total_ce_oi+"<b/>";
+		  console.log("ce_oi_total" + ce_oi_total);
+		  var ce_oi_total= document.getElementById("pe_oi_total").innerHTML="<b>"+total_pe_oi+"<b/>";
+}
+
+function createOptionTable(){
+      var x = document.createElement("TABLE");
+      x.setAttribute("id", "optionchain");
+      x.setAttribute("class", "opttbldata");
+      x.setAttribute("border", "0");
+      x.setAttribute("align", "center");
+      x.setAttribute("cellpadding", "4");
+      x.setAttribute("cellspacing", "1");
+      x.setAttribute("width", "100%");
+     
+      $("#mydiv").append(x);
+      
+      // table header
+      $("#optionchain").append('<thead>'+
+      
+      '<tr class="optionHead"><th colspan="5" >CALLS</th><th>&nbsp;</th><th colspan="5" >PUTS</th></tr>'+
+      
+      '<tr class="optionHead">'+
+      '<th title="Open Interest">OI</th><th title="Change OI"> Change in OI</th>'+
+      '<th title="No. of Contracts traded">Volume</th><th title="Implied Volatility">IV</th>'+
+      '<th title="Last Traded Price">LTP</th><th title="Strike Price">Strike Price</th>'+
+      '<th title="Last Traded Price">LTP</th><th title="Implied Volatility">IV</th><th title="No. of Contracts traded">Volume</th>'+
+      '<th title="Change OI"> Change in OI</th><th title="Open Interest">OI</th>'+
+      '</tr>'+
+      '</thead>');
+       
+        // table Fotter 
+      $("#optionchain").append('<tfoot><tr class="optionHead"> '+
+      '<td id="ce_oi_total" ><b></b></td> <td ><b></b></td> <td ><b></b></td> <td colspan="5"></td> <td ><b></b></td> <td ><b></b></td>' +
+      '<td id="pe_oi_total" ><b></b></td>'+ 
+      '</tr></tfoot>');
+}
+
+function oiBarchart(jsonResponse){
+var d =jsonResponse;
+//var d={"rbiReferenceRate":"64.1141","total_ce_oi":1140339,"total_pe_oi":948886,"max_ce_oi":233411,"max_pe_oi":183365,"expiryList":["--Select--","29MAY2017","28JUN2017","27JUL2017","27SEP2017"],"dataset":[{"ce_OI":"-","pe_OI":"-","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 61.25 ","ce_LTP":"-","ce_Volume":"-","ce_IV":"0.00","pe_LTP":"-","pe_IV":"0.00","pe_Volume":"-"},{"ce_OI":"-","pe_OI":"-","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 61.50 ","ce_LTP":"-","ce_Volume":"-","ce_IV":"0.00","pe_LTP":"-","pe_IV":"0.00","pe_Volume":"-"},{"ce_OI":"-","pe_OI":"-","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 61.75 ","ce_LTP":"-","ce_Volume":"-","ce_IV":"0.00","pe_LTP":"-","pe_IV":"0.00","pe_Volume":"-"},{"ce_OI":"-","pe_OI":"-","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 62.00 ","ce_LTP":"-","ce_Volume":"-","ce_IV":"0.00","pe_LTP":"-","pe_IV":"0.00","pe_Volume":"-"},{"ce_OI":"-","pe_OI":"-","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 62.25 ","ce_LTP":"-","ce_Volume":"-","ce_IV":"0.00","pe_LTP":"-","pe_IV":"0.00","pe_Volume":"-"},{"ce_OI":"-","pe_OI":"9,051","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 62.50 ","ce_LTP":"-","ce_Volume":"-","ce_IV":"0.00","pe_LTP":"0.0100","pe_IV":"5.46","pe_Volume":"9,051"},{"ce_OI":"-","pe_OI":"-","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 62.75 ","ce_LTP":"-","ce_Volume":"-","ce_IV":"0.00","pe_LTP":"-","pe_IV":"0.00","pe_Volume":"-"},{"ce_OI":"5,850","pe_OI":"30,983","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 63.00 ","ce_LTP":"1.4000","ce_Volume":"1,345","ce_IV":"3.79","pe_LTP":"0.0225","pe_IV":"5.00","pe_Volume":"32,418"},{"ce_OI":"8","pe_OI":"2,785","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 63.25 ","ce_LTP":"1.2175","ce_Volume":"-","ce_IV":"3.27","pe_LTP":"0.0425","pe_IV":"5.05","pe_Volume":"3,399"},{"ce_OI":"38,650","pe_OI":"51,654","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 63.50 ","ce_LTP":"0.9400","ce_Volume":"33,287","ce_IV":"2.23","pe_LTP":"0.0600","pe_IV":"4.74","pe_Volume":"69,921"},{"ce_OI":"18","pe_OI":"22,742","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 63.75 ","ce_LTP":"0.7400","ce_Volume":"8","ce_IV":"2.14","pe_LTP":"0.1100","pe_IV":"4.89","pe_Volume":"15,645"},{"ce_OI":"141,390","pe_OI":"183,365","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 64.00 ","ce_LTP":"0.5675","ce_Volume":"45,823","ce_IV":"3.24","pe_LTP":"0.1775","pe_IV":"4.96","pe_Volume":"158,612"},{"ce_OI":"32,022","pe_OI":"50,497","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 64.25 ","ce_LTP":"0.4175","ce_Volume":"23,061","ce_IV":"3.67","pe_LTP":"0.2850","pe_IV":"5.24","pe_Volume":"47,894"},{"ce_OI":"173,827","pe_OI":"179,777","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 64.50 ","ce_LTP":"0.3000","ce_Volume":"131,722","ce_IV":"3.98","pe_LTP":"0.4025","pe_IV":"5.30","pe_Volume":"72,892"},{"ce_OI":"38,115","pe_OI":"21,507","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 64.75 ","ce_LTP":"0.2050","ce_Volume":"28,756","ce_IV":"4.15","pe_LTP":"0.5525","pe_IV":"5.47","pe_Volume":"2,000"},{"ce_OI":"233,411","pe_OI":"165,315","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 65.00 ","ce_LTP":"0.1400","ce_Volume":"135,136","ce_IV":"4.36","pe_LTP":"0.7450","pe_IV":"5.95","pe_Volume":"48,612"},{"ce_OI":"36,553","pe_OI":"1,707","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 65.25 ","ce_LTP":"0.0900","ce_Volume":"16,031","ce_IV":"4.48","pe_LTP":"0.9500","pe_IV":"6.40","pe_Volume":"420"},{"ce_OI":"138,876","pe_OI":"85,969","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 65.50 ","ce_LTP":"0.0700","ce_Volume":"58,702","ce_IV":"4.92","pe_LTP":"1.1600","pe_IV":"6.76","pe_Volume":"49,712"},{"ce_OI":"5,157","pe_OI":"80","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 65.75 ","ce_LTP":"0.0500","ce_Volume":"5,253","ce_IV":"5.19","pe_LTP":"1.4300","pe_IV":"8.08","pe_Volume":"2"},{"ce_OI":"151,970","pe_OI":"22,344","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 66.00 ","ce_LTP":"0.0400","ce_Volume":"97,596","ce_IV":"5.59","pe_LTP":"1.6400","pe_IV":"8.23","pe_Volume":"307"},{"ce_OI":"1,003","pe_OI":"42,708","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 66.25 ","ce_LTP":"0.0300","ce_Volume":"-","ce_IV":"5.87","pe_LTP":"1.6500","pe_IV":"5.71","pe_Volume":"-"},{"ce_OI":"67,504","pe_OI":"13,568","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 66.50 ","ce_LTP":"0.0225","ce_Volume":"26,170","ce_IV":"6.13","pe_LTP":"2.1325","pe_IV":"9.79","pe_Volume":"127"},{"ce_OI":"615","pe_OI":"470","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 66.75 ","ce_LTP":"0.0025","ce_Volume":"-","ce_IV":"4.82","pe_LTP":"2.3500","pe_IV":"9.81","pe_Volume":"-"},{"ce_OI":"60,502","pe_OI":"47,429","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 67.00 ","ce_LTP":"0.0150","ce_Volume":"7,903","ce_IV":"6.81","pe_LTP":"2.5850","pe_IV":"10.17","pe_Volume":"2,078"},{"ce_OI":"11","pe_OI":"760","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 67.25 ","ce_LTP":"0.0100","ce_Volume":"-","ce_IV":"6.89","pe_LTP":"2.9325","pe_IV":"13.40","pe_Volume":"-"},{"ce_OI":"3,620","pe_OI":"7,954","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 67.50 ","ce_LTP":"0.0100","ce_Volume":"1,860","ce_IV":"7.41","pe_LTP":"3.1000","pe_IV":"12.11","pe_Volume":"241"},{"ce_OI":"200","pe_OI":"160","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 67.75 ","ce_LTP":"0.0575","ce_Volume":"-","ce_IV":"10.85","pe_LTP":"3.4600","pe_IV":"15.66","pe_Volume":"-"},{"ce_OI":"5,878","pe_OI":"7,151","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 68.00 ","ce_LTP":"0.0100","ce_Volume":"1,501","ce_IV":"8.42","pe_LTP":"3.6300","pe_IV":"14.46","pe_Volume":"800"},{"ce_OI":"17","pe_OI":"298","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 68.25 ","ce_LTP":"0.0025","ce_Volume":"-","ce_IV":"7.49","pe_LTP":"3.8575","pe_IV":"14.55","pe_Volume":"-"},{"ce_OI":"202","pe_OI":"520","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 68.50 ","ce_LTP":"0.0075","ce_Volume":"-","ce_IV":"9.04","pe_LTP":"4.1050","pe_IV":"14.26","pe_Volume":"-"},{"ce_OI":"-","pe_OI":"-","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 68.75 ","ce_LTP":"0.0600","ce_Volume":"-","ce_IV":"6.16","pe_LTP":"-","pe_IV":"0.00","pe_Volume":"-"},{"ce_OI":"4,278","pe_OI":"92","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 69.00 ","ce_LTP":"0.0025","ce_Volume":"-","ce_IV":"8.76","pe_LTP":"4.3800","pe_IV":"11.96","pe_Volume":"-"},{"ce_OI":"-","pe_OI":"-","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 69.25 ","ce_LTP":"-","ce_Volume":"-","ce_IV":"0.00","pe_LTP":"-","pe_IV":"0.00","pe_Volume":"-"},{"ce_OI":"662","pe_OI":"-","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 69.50 ","ce_LTP":"0.0075","ce_Volume":"-","ce_IV":"10.89","pe_LTP":"-","pe_IV":"0.00","pe_Volume":"-"},{"ce_OI":"-","pe_OI":"-","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 69.75 ","ce_LTP":"-","ce_Volume":"-","ce_IV":"0.00","pe_LTP":"-","pe_IV":"0.00","pe_Volume":"-"},{"ce_OI":"-","pe_OI":"-","pe_Change_in_OI":"-","ce_Change_in_OI":"-","strike_Price":" 70.00 ","ce_LTP":"-","ce_Volume":"-","ce_IV":"0.00","pe_LTP":"-","pe_IV":"0.00","pe_Volume":"-"}]}
+console.log("type of : " + typeof d)
+var data=d.dataset;
+
+console.log("data:" + data.length);
+var callArray=[];
+var putArray=[];
+
+for (i = 0; i < data.length; i++) { 
+var chartCallData;
+		if(data[i].ce_OI == "-"){
+		 chartCallData = {"x":data[i].strike_Price.trim(), "y":0};
+		}else{
+		 chartCallData = {"x":data[i].strike_Price.trim(), "y":parseInt(data[i].ce_OI.replace(/,/, "").trim())};
+		}
+		var chartPutData;
+		if(data[i].pe_OI == "-"){
+		chartPutData = {"x":data[i].strike_Price.trim(), "y":0};
+		}else{
+		chartPutData = {"x":data[i].strike_Price.trim(), "y":parseInt(data[i].pe_OI.replace(/,/, "").trim())};
+		}
+		
+		
+		callArray.push(chartCallData);
+		putArray.push(chartPutData);
+}
+
+var chart = nv.models.multiBarChart().stacked(false).showControls(false);;
+d3.select('#chart svg').datum([
+  {
+    key: "Call",
+    color: "#51A351",
+    values:callArray
+  },
+  {
+    key: "Put",
+    color: "#BD362F",
+    values:putArray
+    
+  }
+]).transition().duration(500).call(chart);
+}
+   </script>
+
+</html>

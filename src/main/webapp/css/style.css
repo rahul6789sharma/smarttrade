@@ -1,0 +1,88 @@
+
+
+body{
+    background-color: #eee;
+font-size: 14.5px!important;
+color: #000;
+text-align: justify;
+font-family: Tahoma,Arial,Verdana,sans-serif;
+
+}
+
+p {
+       display: block;
+    -webkit-margin-before: 1em;
+    -webkit-margin-after: 1em;
+    -webkit-margin-start: 0px;
+    -webkit-margin-end: 0px;
+
+}
+	
+.command{
+background-color: #F7F7F9; 
+border:1px solid #DDD;
+padding:10px 10px 10px 15px;
+}
+
+.imgBox{
+background-color: #F7F7F9; 
+border:1px solid #DDD;
+padding:25px 25px 25px 25px;
+}
+
+.myancor{
+color:#3367d6;
+font-weight: 700;
+}
+a{
+color: #333;
+
+}
+
+.leftMenulink{
+font-size: 13.5px!important;
+text-decoration: none !important;
+}
+
+.leftMenuActiveDIV:hover{
+background-color: #666666;
+color:white;
+}
+
+.mainHeading{
+margin-top:0px ;
+margin-bottom: 8px; 
+
+}
+
+.customPanle{
+padding-left:0px ;
+padding-right:0px
+}
+
+.leftMenuinActive{
+list-style: circle;
+}
+
+.leftMenuActive{
+font-weight: bold;
+}
+
+.leftMenuActiveDIV{
+padding-left: 30px;
+}
+
+.listHeading{
+font-weight: bold;
+list-style: none; 
+padding-bottom:5px; 
+color:#E66330;
+font-size: 13.5px!important;
+}
+
+.mainParaHeding{
+color:#E66330;
+font-size:18px;
+margin-bottom: 2%;
+text-align: center;
+}
